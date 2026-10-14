@@ -1,0 +1,145 @@
+========================================
+PHP 语言基础（工程化视角）
+适合人群：想在 vibe coding 时代看懂 AI 生成的 PHP 代码
+========================================
+
+一、PHP 是什么？
+----------------------------------------
+PHP 是服务端脚本语言，主要用来做 Web 后端。
+特点：
+- 代码混在 HTML 里也能跑（`<?php ?>` 包裹起来就是 PHP 代码）
+- 变量无需声明类型，弱类型
+- 数据靠数组打天下（没有独立的 List/Map 概念）
+- 每个请求独立执行，跑完就销毁（无状态）
+
+现代 PHP 项目几乎都是「框架 + Composer 依赖」模式：
+Laravel（最流行）、ThinkPHP（国内常用）、Symfony、Yii。
+
+一句话理解工程结构：
+用户请求 -> 路由(Route) -> 控制器(Controller) -> 调用模型(Model)/服务(Service) -> 返回视图/JSON
+
+========================================
+二、必须会的核心语法
+----------------------------------------
+
+1. 变量与拼接
+   $name = "小明";                 // $ 开头的就是变量
+   echo "你好" . $name;            // . 是字符串拼接
+   echo "你好{$name}";             // 双引号里 {} 可直接插值
+
+2. 数组（PHP 的灵魂，几乎所有数据都是它）
+   $users = ["a", "b", "c"];                       // 索引数组
+   $user = ["name" => "小明", "age" => 18];        // 关联数组 ≈ Map/对象
+   $user['name'];                                  // 取值
+   $user['email'] = "x@y.com";                     // 赋值/新增
+
+3. 条件与循环
+   if ($age >= 18) { ... } else { ... }
+   foreach ($users as $u) { echo $u; }             // 最常用，遍历数组
+   foreach ($user as $key => $value) { ... }       // 带键遍历
+
+4. 函数
+   function greet($name) { return "Hi " . $name; }
+   $result = greet("小明");
+
+5. 箭头函数 / 匿名函数（AI 代码里常见）
+   $double = fn($n) => $n * 2;                     // 箭头函数
+   $filtered = array_filter($users, fn($u) => $u != "a");  // 过滤
+   array_map(fn($u) => strtoupper($u), $users);    // 映射转换
+
+========================================
+三、超全局变量（请求怎么进来的）
+----------------------------------------
+$_GET      // URL 查询参数：/user?id=1  ->  $_GET['id']
+$_POST     // 表单 POST 提交的数据
+$_REQUEST  // GET+POST 合并
+$_SERVER   // 服务器/请求信息（$_SERVER['REQUEST_METHOD'] 等）
+$_SESSION  // 会话数据（登录状态）
+$_COOKIE   // Cookie
+
+classic 模式：写 API 时常用
+$id = $_GET['id'] ?? 0;        // ?? 空合并运算符，不存在就给默认值
+$data = json_decode(file_get_contents("php://input"), true);  // 读 JSON body
+
+========================================
+四、面向对象（现代 PHP 99% 是 OOP）
+----------------------------------------
+class User {
+    private $name;                                  // 属性（私有）
+
+    public function __construct($name) {            // 构造函数
+        $this->name = $name;
+    }
+
+    public function getName(): string {             // 方法（可写返回类型）
+        return $this->name;
+    }
+}
+
+$u = new User("小明");
+$u->getName();
+
+- 继承：class Admin extends User { ... }
+- 接口：interface Logger { public function log($msg); }
+- 依赖注入（DI）：把对象作为参数传进来，而不是 new，是框架的核心思想
+  class UserService {
+      public function __construct(private UserRepository $repo) {}
+      // PHP 8 的构造器属性提升，直接声明并赋值
+  }
+
+========================================
+五、工程化必懂概念
+----------------------------------------
+1. Composer —— PHP 的依赖管理（类似 npm）
+   - composer.json 声明依赖
+   - vendor/ 目录存放安装的第三方包
+   - 包命名空间：use Vendor\Package\Class;
+
+2. 命名空间 namespace
+   namespace App\Models;         // 声明
+   use App\Models\User;          // 引入（类似 import）
+   use Illuminate\Http\Request;  // Laravel 里每个控制器都要用
+
+3. MVC 三层
+   - 路由 Route 里定义 URL 指向控制器方法
+   - 控制器接收请求、调用业务逻辑
+   - 模型对应数据库表
+   - 视图渲染 HTML（或返回 JSON）
+
+4. 类型与空安全（AI 代码里高频）
+   ?string $name                 // 可为空字符串类型
+   $user?->getName()             // 空安全调用，对象为空不报错
+   ?? 与 ?-> 是看懂现代 PHP 的关键
+
+========================================
+六、常见 Laravel/ThinkPHP 代码模式速读
+----------------------------------------
+Route::get('/users', [UserController::class, 'index']);   // 定义路由
+Route::post('/users', ...);                               // 提交数据
+
+class UserController extends Controller {
+    public function index() {
+        $users = User::where('status', 1)->get();          // 查询数据库
+        return response()->json($users);                   // 返回 JSON
+    }
+}
+
+- Eloquent 模型：User::find(1)、User::create([...])、$user->update([...])
+- 依赖注入 Request：public function store(Request $request) { $request->validate([...]); }
+- 中间件 Middleware：请求进控制器前做验证/鉴权
+
+========================================
+七、快速记忆口诀
+----------------------------------------
+- 看到 $ 开头 → 变量
+- 看到 => → 键值对数组
+- 看到 -> → 访问对象属性/方法（相当于 Java 的 .）
+- 看到 use + 反斜杠路径 → 引入类
+- 看到 ?> 或 ?></php> → PHP 代码段结束
+- 看到 namespace → 当前文件属于哪个模块
+- 看到 ?? → 空值给默认
+- 看到 fn($x) => ... → 箭头函数
+- 看到 class ... extends ... → 继承
+
+看完本文件，你再看 AI 生成的 PHP 后端代码，至少能看懂 60~70% 的逻辑骨架。
+剩下的查 PHP 手册或直接问 AI 就行。
