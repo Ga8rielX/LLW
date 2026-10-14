@@ -1,0 +1,162 @@
+========================================
+Java 语言基础（工程化视角）
+适合人群：想在 vibe coding 时代看懂 AI 生成的 Java 代码
+========================================
+
+一、Java 是什么？
+----------------------------------------
+Java 是强类型、面向对象、需要编译的服务端语言。
+现代 Java 项目 99% 是 Spring Boot（后端）+ Maven/Gradle（构建工具）。
+
+特点：
+- 一切皆对象（int/String 等也有包装类型）
+- 强类型：变量声明时必须写明类型
+- 编译型：写完要编译成 .class / 打包成 .jar 才能运行
+- 后端行业绝对主力，企业级应用首选
+
+========================================
+二、核心语法（看懂代码的最低要求）
+----------------------------------------
+
+1. 变量与类型
+   int age = 18;             // 基本类型：int long double float boolean char
+   String name = "小明";      // String 是类，用双引号
+   var x = 10;               // Java 10+ 的 var：让编译器推断类型
+
+2. 字符串操作
+   name.length();            // 长度
+   name.toUpperCase();       // 转大写
+   "a".equals(name);         // 比较要用 equals()，不能用 ==
+   String full = "Hi " + name;   // + 拼接
+
+3. 条件与循环
+   if (age >= 18) { ... } else { ... }
+   for (int i = 0; i < 10; i++) { ... }
+   for (String s : list) { ... }      // 增强 for，最常用
+   list.forEach(x -> { ... });        // Lambda 遍历
+
+4. 方法
+   public String greet(String name) {
+       return "Hi " + name;
+   }
+
+========================================
+三、面向对象（Java 的核心中的核心）
+----------------------------------------
+public class User {                     // 类 = 数据 + 行为
+    private String name;                // 属性（private 封装）
+    private int age;
+
+    public User(String name, int age) { // 构造函数
+        this.name = name;
+        this.age = age;
+    }
+
+    public String getName() {           // Getter
+        return name;
+    }
+
+    public void setName(String name) {  // Setter
+        this.name = name;
+    }
+}
+
+必须懂的三个词：
+- 继承 extends：class Admin extends User
+- 接口 implements：class X implements Runnable
+- 多态：父类引用指向子类对象，调用时按实际类型执行
+
+Lambda 表达式（AI 代码高频，Java 8+）：
+    List<User> adults = users.stream()
+        .filter(u -> u.getAge() >= 18)     // 过滤
+        .map(u -> u.getName())             // 转换
+        .collect(Collectors.toList());     // 收成 List
+
+========================================
+四、集合框架（List/Map/Set）
+----------------------------------------
+List<String> names = new ArrayList<>();   // 有序可重复
+names.add("a");
+names.get(0);                             // 按下标取
+
+Map<String, Object> m = new HashMap<>();  // 键值对 ≈ JSON 对象
+m.put("name", "小明");
+m.get("name");
+
+Set<String> s = new HashSet<>();          // 无序不可重复
+
+List.of(...)  Map.of(...)  // Java 9+ 快速创建不可变集合
+
+========================================
+五、异常处理
+----------------------------------------
+try {
+    int r = 10 / 0;
+} catch (ArithmeticException e) {
+    System.out.println("出错：" + e.getMessage());
+} finally {
+    // 无论如何都执行（关资源）
+}
+
+- 受检异常：编译就要求处理
+- 运行时异常：不强制，但代码里常有 try-catch
+- 现代写法：方法签名 throws Exception，异常上抛给全局处理器（Spring 的 @RestControllerAdvice）
+
+========================================
+六、工程化必懂：Spring Boot
+----------------------------------------
+Spring Boot 是 Java Web 的绝对标准，核心就三样：
+
+1. 注解（Annotation）—— 看代码第一步就是认注解
+   @RestController    // 这个类是接口控制器
+   @RequestMapping("/api/users")   // 类级别 URL 前缀
+   @GetMapping("/{id}")            // GET 请求，路径参数
+   @PostMapping                    // POST 请求
+   @RequestBody                    // 参数从 JSON body 取
+   @PathVariable                    // 路径参数 {id}
+   @RequestParam                    // 查询参数 ?page=1
+   @Autowired / @Resource           // 自动注入依赖对象
+   @Service / @Repository / @Component  // 标记为容器管理的 Bean
+   @Configuration + @Bean           // 配置类里定义 Bean
+
+2. 三层架构
+   Controller（接收请求/返回） -> Service（业务逻辑） -> Mapper/Repository（数据库）
+
+3. 典型接口代码长这样：
+   @RestController
+   public class UserController {
+       @Autowired
+       private UserService userService;               // 注入服务
+
+       @GetMapping("/users/{id}")
+       public User getUser(@PathVariable Long id) {
+           return userService.getById(id);
+       }
+   }
+
+========================================
+七、构建工具与依赖
+----------------------------------------
+- Maven：pom.xml 声明依赖，比如
+  <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+  </dependency>
+- Gradle：build.gradle 文件，语法更简洁
+- 依赖坐标：groupId:artifactId:version 三段定位一个库
+
+========================================
+八、快速记忆口诀
+----------------------------------------
+- 看到 class → 类定义
+- 看到 private/public/protected → 访问权限
+- 看到 @开头 → 注解，多半是 Spring 在起作用
+- 看到 -> → Lambda
+- 看到 .stream() → 链式操作集合
+- 看到 Optional<T> → 可能为空的包装，用 .orElse() 给默认值
+- 看到 new → 创建对象
+- 看到 import ...; → 引入其他类
+- 看到 @Service/@Repository → 业务层/数据层
+- 看到 T, R, ? → 泛型，理解为「任意类型」即可
+
+看完本文件，你再看 AI 生成的 Spring Boot 后端代码，至少能看懂 60~70% 的结构。

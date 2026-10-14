@@ -1,0 +1,143 @@
+========================================
+HTML 页面搭建基础（工程化视角）
+适合人群：想在 vibe coding 时代看懂 AI 生成的页面代码
+========================================
+
+一、HTML 是什么？
+----------------------------------------
+HTML（超文本标记语言）是网页的骨架/结构。
+不是编程语言，是「标签」组成的标记语言：
+浏览器读到标签就知道「这里放什么」。
+
+记住一个核心思想：
+HTML 负责「有什么」→ CSS 负责「长什么样」→ JS/Vue 负责「干什么」。
+
+========================================
+二、一个页面的最小骨架
+----------------------------------------
+<!DOCTYPE html>              <!-- 声明这是 HTML5 文档 -->
+<html lang="zh-CN">          <!-- 根标签 -->
+<head>                       <!-- 头部：页面信息，不显示 -->
+    <meta charset="UTF-8">   <!-- 编码，中文不乱码 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+                             <!-- 移动端适配，几乎每个页面都有 -->
+    <title>页面标题</title>   <!-- 浏览器标签页上显示的文字 -->
+    <link rel="stylesheet" href="style.css">  <!-- 引入 CSS -->
+</head>
+<body>                       <!-- 主体：页面上显示的所有内容 -->
+    <h1>一级标题</h1>
+    <p>这是一段文字</p>
+    <script src="app.js"></script>  <!-- 引入 JS，一般在 body 底部 -->
+</body>
+</html>
+
+========================================
+三、最常用的标签（90% 页面就这几个）
+----------------------------------------
+结构类：
+<div></div>       万能容器块（最最最常用，页面全靠它分区）
+<span></span>     行内小容器（包一小段文字）
+
+标题类：
+<h1>~<h6></h1>~</h6>   六级标题，h1 最重要（SEO 友好）
+
+文字类：
+<p>段落</p>        <strong>加粗</strong>    <em>斜体</em>
+<br> 换行          <a href="url">超链接</a>
+
+列表类：
+<ul><li>无序列表项</li></ul>    <!-- 导航、菜单常用 -->
+<ol><li>有序列表项</li></ol>
+
+媒体类：
+<img src="图片地址" alt="图片描述">        <!-- alt 必写：加载失败或读屏用 -->
+<video src="..." controls></video>
+<audio src="..."></audio>
+
+表格式数据：
+<table>
+    <tr><th>表头</th></tr>
+    <tr><td>单元格</td></tr>
+</table>
+
+========================================
+四、表单（和用户交互，后端对接全靠它）
+----------------------------------------
+<form action="/submit" method="post">
+    <label for="name">姓名</label>
+    <input type="text" id="name" name="name" placeholder="请输入姓名" required>
+    <input type="email" name="email">              <!-- 邮箱 -->
+    <input type="password" name="pwd">             <!-- 密码 -->
+    <input type="number" name="age">               <!-- 数字 -->
+    <input type="checkbox" name="agree"> 同意协议   <!-- 勾选 -->
+    <select name="city">                           <!-- 下拉 -->
+        <option value="bj">北京</option>
+        <option value="sh">上海</option>
+    </select>
+    <textarea name="desc"></textarea>              <!-- 多行文本 -->
+    <button type="submit">提交</button>            <!-- 提交按钮 -->
+</form>
+
+关键点：
+- name 属性是提交后后端的字段名（name="email" → $_POST['email']）
+- action 是提交地址，method 是 GET/POST
+- required 必填校验
+
+========================================
+五、属性（看懂代码的钥匙）
+----------------------------------------
+id       #id    唯一标识，一个页面只允许一个，JS 定位用
+class    .class 样式类，一个页面可有多个，CSS 批量样式用
+data-*         自定义属性，前端存数据用：data-user-id="5"
+style          行内样式：style="color:red"（能看懂就行，工程上少用）
+href           链接地址（<a>、<link>）
+src            资源地址（<img>、<script>）
+alt            图片替代文字
+title          鼠标悬停提示
+
+========================================
+六、语义化标签（工程代码里非常常见）
+----------------------------------------
+<header> 页头   <nav> 导航   <main> 主体
+<article> 文章  <section> 区块  <aside> 侧栏  <footer> 页脚
+
+作用：代码可读性好、对搜索引擎（SEO）和读屏器友好。
+AI 生成代码里大量使用，看到别慌，它们和 <div> 行为类似。
+
+========================================
+七、现代工程化 HTML（vibe coding 时代你看到的）
+----------------------------------------
+现在很少手写 HTML，而是用框架生成，但骨架不变：
+
+1. Vue 模板（几乎长得像 HTML，多个花括号）
+   <div class="user-card">
+     <h2>{{ user.name }}</h2>        <!-- {{ }} 是数据插值 -->
+     <p v-if="user.age > 18">成年</p><!-- v-if 条件显示 -->
+     <button @click="save()">保存</button>  <!-- @click 点击事件 -->
+   </div>
+
+2. React 的 JSX（HTML 和 JS 混写）
+   <div className="user-card">       <!-- 注意：class 要写成 className -->
+     <h2>{user.name}</h2>            <!-- { } 是 JS 表达式 -->
+     {user.age > 18 && <p>成年</p>}
+   </div>
+
+3. 组件化思想（现代前端一切皆组件）
+   <Header />
+   <UserCard :user="user" />
+   —— 标签变成大写/驼峰 = 一个组件（自己封装的 UI 模块）
+
+========================================
+八、看懂别人 HTML 代码的速查
+----------------------------------------
+- 看到 <div> → 一个块容器
+- 看到 {{ }} 或 { } → 框架的数据绑定/表达式
+- 看到 v- 开头 → Vue 指令
+- 看到 :xxx=  → Vue 属性绑定（:class、:src）
+- 看到 @xxx=  → Vue/JS 事件
+- 看到 className → 这是 React 写的，等于 class
+- 看到 data-* → 自定义数据
+- 看到 ?.  → 可选链，空值不报错
+
+HTML 是三者里最简单的，看到标签猜意思基本都能猜中。
+本文件看完，Vue/React 页面模板你能看懂一大半。

@@ -1,0 +1,194 @@
+========================================
+Vue 框架基础（工程化视角）
+适合人群：想在 vibe coding 时代看懂 AI 生成的前端项目
+========================================
+
+一、Vue 是什么？
+----------------------------------------
+Vue 是前端框架，负责「界面和数据同步」：
+你改数据 → 页面自动变（响应式），不用手动操作 DOM。
+它是当前前端（尤其国内）绝对主流，AI 生成页面十有八九是 Vue。
+
+三大核心概念：
+1. 组件（Component）：页面由一块块独立 UI 组成
+2. 响应式（Reactive）：数据变了，视图自动更新
+3. 模板语法（Template）：在 HTML 里写 {{ }} 绑定数据
+
+========================================
+二、看懂一个 Vue 组件（最重要，没有之一）
+----------------------------------------
+一个组件通常在一个 .vue 文件里，分三块：
+
+<script setup>
+// 1. 逻辑区（写 JS 的地方，setup 是现在的主流写法）
+import { ref, computed } from 'vue'
+import api from '@/api'
+
+const count = ref(0)                    // ref = 响应式数据
+const user = ref({ name: '小明', age: 18 })
+
+function addOne() {                     // 方法
+    count.value++                       // 注意：ref 数据要 .value
+}
+
+// computed 计算属性：由其他数据推导，自动更新
+const isAdult = computed(() => user.value.age >= 18)
+</script>
+
+<template>
+    <!-- 2. 模板区（长得像 HTML） -->
+    <div class="card">
+        <h2>{{ user.name }}</h2>            <!-- 插值，显示数据 -->
+        <p v-if="isAdult">已成年</p>         <!-- v-if 条件渲染 -->
+        <button @click="addOne">+1</button> <!-- @click 绑定点击事件 -->
+        <p>计数：{{ count }}</p>
+    </div>
+</template>
+
+<style scoped>
+/* 3. 样式区（scoped = 只对这个组件生效） */
+.card { border: 1px solid #eee; padding: 12px; }
+</style>
+
+========================================
+三、模板语法速查（v- 开头的都是指令）
+----------------------------------------
+{{ message }}            插值，显示变量
+v-text / v-html          输出文本 / 输出 HTML
+v-if / v-else-if / v-else 条件渲染（为 false 时不渲染）
+v-show                  类似 v-if，但只是 CSS 隐藏
+v-for                   循环渲染
+   <li v-for="item in list" :key="item.id">{{ item.name }}</li>
+v-bind（简写 :）        属性绑定：:src="url" :class="cls" :disabled="isDisabled"
+v-on（简写 @）          事件绑定：@click @submit @input @change
+v-model                 双向绑定（表单输入和变量同步）：
+   <input v-model="keyword">   → 输入的内容自动存进 keyword
+v-once / v-memo         性能优化用，能看懂即可
+
+:key                    循环时的唯一标识（必须写，别漏）
+
+========================================
+四、响应式 API（script 里看到就认识）
+----------------------------------------
+ref(0)            包装成响应式，访问用 .value（模板里自动解包不用 .value）
+reactive({...})   包装对象，直接 .属性 访问（老 API，新项目多用 ref）
+computed(...)     计算属性，依赖变化自动重算
+watch(x, fn)      侦听，x 变了执行 fn
+watchEffect(fn)   自动追踪依赖并执行
+onMounted(fn)     组件挂载完执行（页面加载后请求数据就写这）
+props             父组件传进来的数据
+emit()            向父组件发消息（emit('事件名', 数据)）
+defineProps({})   声明组件接收哪些 props
+defineEmits([])   声明组件会发出哪些事件
+
+生命周期（了解顺序即可）：
+setup → onMounted（挂载完成，请求数据） → 更新 → onUnmounted（销毁）
+
+========================================
+五、组件通信（父子组件怎么传东西）
+----------------------------------------
+父传子（props）：
+   父：<UserCard :user="user" />
+   子：const props = defineProps({ user: Object })
+
+子传父（emit）：
+   子：const emit = defineEmits(['delete']); emit('delete', id)
+   父：<UserCard @delete="handleDelete" />
+
+全局状态（多个页面共享，Pinia）：
+   const store = useUserStore()
+   store.userName
+   store.setName('小明')
+
+========================================
+六、路由（页面怎么切换）
+----------------------------------------
+Vue Router：URL 和组件一一对应。
+const routes = [
+    { path: '/', component: Home },
+    { path: '/user/:id', component: UserDetail },   // :id 是动态参数
+    { path: '/login', component: Login },
+]
+- <router-view />   当前路由的组件显示在这
+- <router-link to="/user/1">去详情</router-link>  页面跳转
+- useRoute()        读当前路由（route.params.id 取动态参数）
+- useRouter()       编程式跳转（router.push('/login')）
+- 路由守卫 beforeEach：进页面前的拦截（登录校验常写这里）
+
+========================================
+七、状态管理 Pinia（跨页面共享数据）
+----------------------------------------
+// store/user.js
+export const useUserStore = defineStore('user', {
+    state: () => ({ name: '', token: '' }),
+    actions: {
+        login(data) { this.token = data.token }   // 方法
+    },
+})
+// 组件里用
+const store = useUserStore()
+store.token       // 读
+store.login(data) // 调
+
+========================================
+八、工程化项目结构（AI 生成的 Vue 项目长这样）
+----------------------------------------
+src/
+├── main.js         入口，创建应用
+├── App.vue         根组件
+├── router/         路由配置
+├── stores/         Pinia 状态
+├── views/          页面级组件（一个路由一个）
+├── components/     通用组件（按钮、弹窗、表格…）
+├── api/            接口封装（axios 请求都放这）
+│   └── user.js     export const getUser = (id) => request.get(`/user/${id}`)
+├── utils/          工具函数
+└── assets/         静态资源
+
+一个「登录页」的完整数据流（看懂这个就能看懂大多数页面）：
+1. 页面挂载 onMounted 或提交按钮 @click
+2. 调用 api/xxx.js 里的函数（axios 发请求）
+3. 拿到数据存进 ref/reactive
+4. 模板 {{ }} / v-for 自动渲染
+
+axios 请求标准写法：
+import axios from 'axios'
+axios.get('/api/user/1').then(res => { user.value = res.data })
+  .catch(err => console.error(err))
+（工程上封装成 request，返回 Promise，用 async/await 调用）
+
+========================================
+九、新旧写法对照（老项目 vs 新项目）
+----------------------------------------
+选项式 API（Vue2 / 老 Vue3，看到 data(){ return {} } 就是它）：
+export default {
+    data() { return { count: 0 } },
+    computed: { ... },
+    methods: { addOne() { this.count++ } },
+}
+
+组合式 API（Vue3 主流，<script setup>）：
+<script setup>
+const count = ref(0)
+function addOne() { count.value++ }
+</script>
+
+两者功能一样，现在 AI 默认生成组合式 + <script setup>。
+
+========================================
+十、看懂 Vue 代码速查
+----------------------------------------
+- 看到 .vue 文件 → 一个组件（模板+逻辑+样式三合一）
+- 看到 <script setup> → Vue3 组合式写法
+- 看到 {{ }} → 数据插值
+- 看到 v-if/v-for/@click/:xxx → 指令（条件/循环/事件/属性绑定）
+- 看到 ref/reactive/computed/watch → 响应式 API
+- 看到 .value → ref 数据的取值
+- 看到 defineProps/defineEmits → 组件通信
+- 看到 useRoute/useRouter → 路由
+- 看到 defineStore → Pinia 状态
+- 看到 await → 异步请求（多半在调后端接口）
+- 看到 onMounted → 进页面时执行
+
+Vue 是「声明式」的：你描述数据关系，框架帮你更新界面。
+本文件看完，AI 生成的前端项目你能看懂大部分逻辑。

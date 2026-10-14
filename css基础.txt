@@ -1,0 +1,157 @@
+========================================
+CSS 基础（工程化视角）
+适合人群：想在 vibe coding 时代看懂 AI 生成的样式代码
+========================================
+
+一、CSS 是什么？
+----------------------------------------
+CSS（层叠样式表）负责网页的「长相」：颜色、大小、位置、动画。
+语法就一句话：给「谁」设置「什么样式」。
+
+选择器 { 属性: 值; }
+
+.example {
+    color: red;            /* 文字颜色 */
+    font-size: 16px;       /* 字号 */
+    margin: 10px;          /* 外边距 */
+    padding: 5px;          /* 内边距 */
+    background-color: #fff;/* 背景色 */
+    display: flex;         /* 弹性布局 */
+}
+
+========================================
+二、选择器（决定「给谁设置」）
+----------------------------------------
+div           元素选择器（所有 div）
+.class        类选择器（最常用）：<div class="card"> → .card
+#id           id 选择器（唯一）
+*             通配符（所有元素）
+div p         后代选择器（div 里面的所有 p）
+div > p       直接子元素（div 的直接子级 p）
+.class1.class2 同时满足两个类
+.class1, .class2  或的关系
+[type="text"] 属性选择器
+:hover        鼠标悬停状态
+::before / ::after  伪元素（在元素前后加内容，装饰常用）
+:first-child / :nth-child(2)  第几个子元素
+
+优先级（谁说了算）：行内样式 > id > class > 元素标签
+看到 !important 表示最高优先级（工程代码里应少用，但 AI 代码偶尔出现）
+
+========================================
+三、盒模型（看懂一切布局的地基）
+----------------------------------------
+每个元素都是一个「盒子」，从外到内：
+margin（外边距，盒子与盒子的距离）
+border（边框）
+padding（内边距，内容与边框的距离）
+content（内容区，宽高设置的是这里）
+
+宽度陷阱：默认 content 宽 = 设置的 width，加了 padding/border 会变宽。
+工程上几乎都会写：
+* { box-sizing: border-box; }   /* 让 width 包含 padding+border，好算 */
+（Tailwind、Bootstrap 等框架默认就是 border-box）
+
+========================================
+四、三大最常用布局（看懂 90% 的页面）
+----------------------------------------
+
+1. Flex 弹性布局（现代布局第一选择，Vue/React 页面全是它）
+   display: flex;
+   flex-direction: row;        /* 主轴方向：row 横排 / column 竖排 */
+   justify-content: center;    /* 主轴对齐：center 居中 / space-between 两端对齐 */
+   align-items: center;        /* 交叉轴对齐：垂直居中常用 */
+   gap: 10px;                  /* 子元素间距 */
+   flex-wrap: wrap;            /* 换行 */
+   flex: 1;                    /* 子元素按比例占空间，flex:1 最常见 */
+
+   子项：flex-grow flex-shrink flex-basis 简写为 flex
+   看到 flex:1 就是「把剩余空间占满」
+
+2. Grid 网格布局（页面整体骨架）
+   display: grid;
+   grid-template-columns: repeat(3, 1fr);   /* 三列等宽 */
+   grid-template-columns: 200px 1fr;        /* 左边固定 200，右边自适应 */
+   gap: 20px;                               /* 间距 */
+
+3. Position 定位（浮层、导航栏）
+   position: relative;   /* 相对自己原位置偏移 */
+   position: absolute;   /* 相对最近的 relative 祖先定位 */
+   position: fixed;      /* 固定在视口，滚不动（导航栏、弹窗） */
+   position: sticky;     /* 吸顶效果 */
+   配合 top/left/right/bottom、z-index（层级）
+
+========================================
+五、工程上高频 CSS 片段（背下来就够用）
+----------------------------------------
+垂直水平居中（最经典，面试必问，工程天天见）：
+.parent { display: flex; justify-content: center; align-items: center; }
+
+文本居中：
+text-align: center;        /* 横向 */
+line-height: 40px;         /* 垂直居中：行高 = 容器高度 */
+
+隐藏元素：
+display: none;     /* 完全移除（布局不占位） */
+visibility: hidden;/* 隐藏但占位 */
+opacity: 0;        /* 透明，仍占位可做动画 */
+
+图片自适应：
+img { max-width: 100%; height: auto; }
+
+文字溢出省略号（列表标题常见）：
+.title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+========================================
+六、响应式（手机电脑都能看）
+----------------------------------------
+@media (max-width: 768px) {
+    .nav { display: none; }      /* 屏幕小于 768px（手机）时生效 */
+}
+- 常见断点：手机 640/768、平板 768/992、桌面 1024/1280
+- 现代方案：flex/grid 自适应 + rem/vw + Tailwind 的 sm/md/lg 前缀
+
+单位速查：
+px 固定像素   rem 相对根字号（响应式标配）  % 百分比  vw/vh 视口宽/高
+
+========================================
+七、工程化 CSS（vibe coding 时代你实际看到的）
+----------------------------------------
+
+1. CSS 变量（主题切换、统一管理）
+   :root { --primary: #409eff; }
+   .btn { color: var(--primary); }
+
+2. Tailwind CSS（原子类，AI 生成页面里的绝对主流）
+   不写 CSS 文件，直接给 HTML 加类名：
+   <div class="flex justify-center items-center p-4 bg-white rounded-lg">
+   含义一目了然：flex 布局、居中、内边距、白色背景、圆角
+   记住映射：p-4=padding 1rem、m-2=margin、rounded=圆角、shadow=阴影、
+   flex col、gap、text-xl、font-bold、hover:xxx（悬停）
+
+3. SCSS/Less（CSS 预处理，加变量和嵌套）
+   $primary: #409eff;
+   .card { color: $primary; .title { font-weight: bold; } }
+
+4. CSS Modules / scoped 样式（Vue 里常见）
+   <style scoped> —— 样式只作用于当前组件，防止互相污染
+
+5. BEM 命名（类名约定）
+   .card__title  .card--active
+   看到双下划线=子元素，双横线=修饰状态
+
+========================================
+八、看懂 CSS 代码速查
+----------------------------------------
+- display: flex / grid → 页面用弹性/网格布局
+- justify-content / align-items → 主轴/交叉轴对齐
+- margin vs padding → 外/内边距
+- 上右下左顺序：margin: 10px 20px 30px 40px（顺时针）
+- position: fixed → 固定定位
+- @media → 响应式断点
+- var(--xxx) → CSS 变量
+- 大量短类名如 flex p-4 → 这是 Tailwind
+- scoped / :deep() → Vue 组件样式作用域（:deep 是穿透改子组件样式）
+
+CSS 不「跑代码」，它是声明式的：看到一条规则 = 元素的一种表现。
+本文件看完，AI 生成的样式代码你基本能读懂七成。
